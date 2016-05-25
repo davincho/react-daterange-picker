@@ -88,6 +88,7 @@ var DateRangePicker = _react2['default'].createClass({
     onSelect: _react2['default'].PropTypes.func, // triggered when a date or range is selectec
     onSelectStart: _react2['default'].PropTypes.func, // triggered when the first date in a range is selected
     paginationArrowComponent: _react2['default'].PropTypes.func,
+    selectEnd: _react2['default'].PropTypes.bool,
     selectedLabel: _react2['default'].PropTypes.string,
     selectionType: _react2['default'].PropTypes.oneOf(['single', 'range']),
     singleDateRange: _react2['default'].PropTypes.bool,
@@ -121,6 +122,7 @@ var DateRangePicker = _react2['default'].createClass({
         }
       },
       selectedLabel: "Your selected dates",
+      selectEnd: false,
       defaultState: '__default',
       dateStates: [],
       showLegend: false,
@@ -145,6 +147,7 @@ var DateRangePicker = _react2['default'].createClass({
     var initialYear = _props.initialYear;
     var initialMonth = _props.initialMonth;
     var initialFromValue = _props.initialFromValue;
+    var selectEnd = _props.selectEnd;
     var selectionType = _props.selectionType;
     var value = _props.value;
 
@@ -169,6 +172,7 @@ var DateRangePicker = _react2['default'].createClass({
     return {
       year: year,
       month: month,
+      selectEnd: selectEnd,
       selectedStartDate: null,
       highlightStartDate: null,
       highlightedDate: null,
@@ -307,11 +311,18 @@ var DateRangePicker = _react2['default'].createClass({
   },
 
   onSelectDate: function onSelectDate(date) {
-    var selectionType = this.props.selectionType;
-    var selectedStartDate = this.state.selectedStartDate;
+    var _props2 = this.props;
+    var selectionType = _props2.selectionType;
+    var value = _props2.value;
+    var _state = this.state;
+    var selectEnd = _state.selectEnd;
+    var selectedStartDate = _state.selectedStartDate;
 
     if (selectionType === 'range') {
-      if (selectedStartDate) {
+      if (selectEnd && value && value.start && value.start.diff(date) < 0) {
+        this.highlightRange(_moment2['default'].range(value.start, date));
+        this.completeRangeSelection();
+      } else if (selectedStartDate) {
         this.completeRangeSelection();
       } else if (!this.isDateDisabled(date) && this.isDateSelectable(date)) {
         this.startRangeSelection(date);
@@ -461,9 +472,9 @@ var DateRangePicker = _react2['default'].createClass({
   },
 
   changeYear: function changeYear(year) {
-    var _state = this.state;
-    var enabledRange = _state.enabledRange;
-    var month = _state.month;
+    var _state2 = this.state;
+    var enabledRange = _state2.enabledRange;
+    var month = _state2.month;
 
     if ((0, _moment2['default'])({ years: year, months: month, date: 1 }).unix() < enabledRange.start.unix()) {
       month = enabledRange.start.month();
@@ -486,19 +497,19 @@ var DateRangePicker = _react2['default'].createClass({
   },
 
   renderCalendar: function renderCalendar(index) {
-    var _props2 = this.props;
-    var bemBlock = _props2.bemBlock;
-    var bemNamespace = _props2.bemNamespace;
-    var firstOfWeek = _props2.firstOfWeek;
-    var numberOfCalendars = _props2.numberOfCalendars;
-    var selectionType = _props2.selectionType;
-    var value = _props2.value;
-    var _state2 = this.state;
-    var dateStates = _state2.dateStates;
-    var enabledRange = _state2.enabledRange;
-    var hideSelection = _state2.hideSelection;
-    var highlightedDate = _state2.highlightedDate;
-    var highlightedRange = _state2.highlightedRange;
+    var _props3 = this.props;
+    var bemBlock = _props3.bemBlock;
+    var bemNamespace = _props3.bemNamespace;
+    var firstOfWeek = _props3.firstOfWeek;
+    var numberOfCalendars = _props3.numberOfCalendars;
+    var selectionType = _props3.selectionType;
+    var value = _props3.value;
+    var _state3 = this.state;
+    var dateStates = _state3.dateStates;
+    var enabledRange = _state3.enabledRange;
+    var hideSelection = _state3.hideSelection;
+    var highlightedDate = _state3.highlightedDate;
+    var highlightedRange = _state3.highlightedRange;
 
     var monthDate = this.getMonthDate();
     var year = monthDate.year();
@@ -561,13 +572,13 @@ var DateRangePicker = _react2['default'].createClass({
   },
 
   render: function render() {
-    var _props3 = this.props;
-    var PaginationArrowComponent = _props3.paginationArrowComponent;
-    var numberOfCalendars = _props3.numberOfCalendars;
-    var stateDefinitions = _props3.stateDefinitions;
-    var selectedLabel = _props3.selectedLabel;
-    var showLegend = _props3.showLegend;
-    var helpMessage = _props3.helpMessage;
+    var _props4 = this.props;
+    var PaginationArrowComponent = _props4.paginationArrowComponent;
+    var numberOfCalendars = _props4.numberOfCalendars;
+    var stateDefinitions = _props4.stateDefinitions;
+    var selectedLabel = _props4.selectedLabel;
+    var showLegend = _props4.showLegend;
+    var helpMessage = _props4.helpMessage;
 
     var calendars = _immutable2['default'].Range(0, numberOfCalendars).map(this.renderCalendar);
 
