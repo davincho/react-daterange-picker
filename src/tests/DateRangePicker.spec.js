@@ -534,6 +534,43 @@ describe('The DateRangePicker component', function () {
 
         });
 
+        describe('if selectEnd is true', function() {
+
+          beforeEach( function () {
+            this.start = moment('2003 01 01', 'YYYY MM DD');
+            this.end = moment('2003 01 04', 'YYYY MM DD');
+            this.laterEnd = moment('2003 01 06', 'YYYY MM DD');
+            this.earlierEnd = moment('2002 12 28', 'YYYY MM DD');
+            this.selectSpy = jasmine.createSpy('selectSpy');
+            this.useDocumentRenderer({
+              value: moment.range(this.start, this.end),
+              selectionType: 'range',
+              selectEnd: true,
+              onSelect: this.selectSpy,
+            });
+          });
+
+          it('should change only end date, when new end date is later than start', function() {
+            this.renderedComponent.onHighlightDate(this.laterEnd);
+            this.renderedComponent.onSelectDate(this.laterEnd);
+            var range = this.selectSpy.calls.first().args[0];
+            expect(range.start.isSame(this.start)).toBe(true);
+            expect(range.end.isSame(this.laterEnd)).toBe(true);
+          });
+
+          it('should take new end date as start date, if it is earlier than start date', function() {
+            this.renderedComponent.onHighlightDate(this.earlierEnd);
+            this.renderedComponent.onSelectDate(this.earlierEnd);
+            this.renderedComponent.onHighlightDate(this.start);
+            this.renderedComponent.onSelectDate(this.start);
+
+            var range = this.selectSpy.calls.first().args[0];
+            expect(range.start.isSame(this.earlierEnd)).toBe(true);
+            expect(range.end.isSame(this.start)).toBe(true);
+          });
+
+        });
+
       });
 
     });

@@ -48,6 +48,7 @@ const DateRangePicker = React.createClass({
     onSelect: React.PropTypes.func, // triggered when a date or range is selectec
     onSelectStart: React.PropTypes.func, // triggered when the first date in a range is selected
     paginationArrowComponent: React.PropTypes.func,
+    selectEnd: React.PropTypes.bool,
     selectedLabel: React.PropTypes.string,
     selectionType: React.PropTypes.oneOf(['single', 'range']),
     singleDateRange: React.PropTypes.bool,
@@ -81,6 +82,7 @@ const DateRangePicker = React.createClass({
         },
       },
       selectedLabel: "Your selected dates",
+      selectEnd: false,
       defaultState: '__default',
       dateStates: [],
       showLegend: false,
@@ -101,7 +103,7 @@ const DateRangePicker = React.createClass({
 
   getInitialState() {
     let now = new Date();
-    let {initialYear, initialMonth, initialFromValue, selectionType, value} = this.props;
+    let {initialYear, initialMonth, initialFromValue, selectEnd, selectionType, value} = this.props;
     let year = now.getFullYear();
     let month = now.getMonth();
 
@@ -123,6 +125,7 @@ const DateRangePicker = React.createClass({
     return {
       year: year,
       month: month,
+      selectEnd: selectEnd,
       selectedStartDate: null,
       highlightStartDate: null,
       highlightedDate: null,
@@ -253,11 +256,14 @@ const DateRangePicker = React.createClass({
   },
 
   onSelectDate(date) {
-    let {selectionType} = this.props;
-    let {selectedStartDate} = this.state;
+    let {selectionType, value} = this.props;
+    let {selectEnd, selectedStartDate} = this.state;
 
     if (selectionType === 'range') {
-      if (selectedStartDate) {
+      if (selectEnd && value && value.start && value.start.diff(date) < 0) {
+        this.highlightRange(moment.range(value.start, date));
+        this.completeRangeSelection();
+      } else if (selectedStartDate) {
         this.completeRangeSelection();
       } else if (!this.isDateDisabled(date) && this.isDateSelectable(date)) {
         this.startRangeSelection(date);
